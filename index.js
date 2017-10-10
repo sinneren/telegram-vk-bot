@@ -3,17 +3,31 @@ var request = require('request');
 var VK = require('vksdk');
 var fs = require('fs');
 
-var TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-var PORT = process.env.PORT || 5000;
-var url = process.env.APP_URL || 'https://telegram-bot-vk-api.herokuapp.com:443';
-var botOptions = {
-    webHook: {
-      port: PORT
-    }
-};
-
+var TOKEN = process.env.TOKEN;
+var PORT = process.env.PORT || 3000;
+var MODE = process.env.MODE || 'dev';
+if (MODE === 'prod') {
+  var url = process.env.APP_URL || 'https://telegram-bot-vk-api.herokuapp.com:443';
+}
+if (MODE === 'prod') {
+  var botOptions = {
+      webHook: {
+        port: PORT
+      }
+  };
+} else {
+  var botOptions = {
+    polling: {
+      timeout: 0,
+      interval: 100
+    },
+    port: PORT
+  };
+}
 var bot = new TelegramBot(TOKEN, botOptions);
-bot.setWebHook(`${url}/bot${TOKEN}`);
+if (MODE === 'prod') {
+  bot.setWebHook(`${url}/bot${TOKEN}`);
+}
 var vk = new VK({
     'appId': 6214737,
     'appSecret': 'eZi3alltJ8I1NiJG3bGw',
@@ -23,15 +37,16 @@ var vk = new VK({
 bot.on('text', function(msg) {
   var messageChatId = msg.chat.id;
   var messageText = msg.text;
-  var messageDate = new Date(msg.date);
   var messageUsr = msg.from.username;
+  var messageDate = new Date(msg.date);
 
   var opts = {
     //http://yraaa.ru/graphics/vse-smajliki-vkontakte-emoji-vk emojii
     //reply_to_message_id: msg.message_id,
     reply_markup: JSON.stringify({
       keyboard: [
-        ['🏦 Прислать фото Питера','📅 Афиша'],
+//        ['🏦 Прислать фото Питера', '📅 Афиша'],
+        ['🏦 Прислать открытку из Питера'],
         ['🆕 Новости бота','❓ Помощь'],
         ['♥ Понравился бот?']
       ],
@@ -73,7 +88,9 @@ bot.on('text', function(msg) {
         img = request(vkResponse[responseArr[1]].photo_130);
       } else {
         bot.sendMessage(messageChatId, "Упс, не найдено подходящего размера", opts);
-        logging("logs/ResponsePhotoVkLog.log", vkResponse);
+        if (MODE === 'prod') {
+          logging("logs/ResponsePhotoVkLog.log", vkResponse);
+        }
       }
 
       if(vkResponse[responseArr[1]].text.length < 190) {
@@ -176,7 +193,9 @@ function getVKGeoPhotos(messageChatId, opts, messageDate, callback) {
         callback(_o.response.items);
       }else{
         bot.sendMessage(messageChatId, "Упс, ничего не найдено", opts);
-        logging("logs/ResponsePhotoVkLog.log", _o);
+        if (MODE === 'prod') {
+          logging("logs/ResponsePhotoVkLog.log", _o);
+        }
       }
     }
   );
@@ -187,20 +206,19 @@ function randd(items_count, vkResponse){
   var randomId = getRandomInt(0, items_count-1);
   var photoCaption = vkResponse[randomId].text;
 
-  if(photoCaption !== ''){
-    if(photoCaption.match(/работа|cm|tfp|лет|см|полумарафон|модель|медаль|марафон|диплом|конкурс|мужское|жеснкое|обмен|меняю|обменяю|заказы|рост|цена|пересыл|ремонт|личку|куплю|макияж|рублей|руб|размер|услуги|тонировка|туфли|джинсы|бронирование|штаны|футболка|продаю|продам|покупка|звоните|сдам|сниму/gi)) {
+  if (photoCaption !== ''){
+    if (photoCaption.match(/работа|cm|tfp|лет|см|полумарафон|модель|медаль|марафон|диплом|конкурс|мужское|жеснкое|обмен|меняю|обменяю|заказы|рост|цена|пересыл|ремонт|личку|куплю|макияж|рублей|руб|размер|услуги|тонировка|туфли|джинсы|бронирование|штаны|футболка|продаю|продам|покупка|звоните|сдам|сниму/gi) ) {
       return randd(items_count, vkResponse);
-    }else{
+    } else {
       return [photoCaption, randomId];
     }
-  }else{
+  } else {
     return [photoCaption, randomId];
   }
 }
 
 //Function to get wall's content
 function getVKPublicNews (messageChatId, optsAfisha, messageDate, pubId) {
-
   vk.request('wall.get', {
     'owner_id' : pubId,
     'count' : 1,
@@ -218,15 +236,21 @@ function getVKPublicNews (messageChatId, optsAfisha, messageDate, pubId) {
             bot.sendPhoto(messageChatId, request(_o.response.items[0].attachments[0].photo.photo_604), optsAfisha);
             bot.sendMessage(messageChatId, _o.response.items[0].text, optsAfisha);
           }
-          logging("logs/ResponsePhotoVkLog.log", _o.response.items);
+          if (MODE === 'prod') {
+            logging("logs/ResponsePhotoVkLog.log", _o.response.items);
+          }
         } else {
-          logging("logs/ResponsePhotoVkLog.log", _o.response.items);
+          if (MODE === 'prod') {
+            logging("logs/ResponsePhotoVkLog.log", _o.response.items);
+          }
           bot.sendMessage(messageChatId, _o.response.items[0].text, optsAfisha);
         }
       } else {
           console.warn(_o);
-          // logging("logs/ResponsePhotoVkLog.log", _o.response.items);
-          // bot.sendMessage(messageChatId, _o.response.items[0].copy_history[0].text, optsAfisha);
+          if (MODE === 'prod') {
+            logging("logs/ResponsePhotoVkLog.log", _o.response.items);
+          }
+          bot.sendMessage(messageChatId, _o.response.items[0].copy_history[0].text, optsAfisha);
       }
     }
   );
