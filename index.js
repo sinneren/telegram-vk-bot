@@ -224,11 +224,10 @@ function getVKPublicNews (messageChatId, optsAfisha, messageDate, pubId) {
           bot.sendMessage(messageChatId, _o.response.items[0].text, optsAfisha);
         }
       } else {
-          logging("logs/ResponsePhotoVkLog.log", _o.response.items);
-          bot.sendMessage(messageChatId, _o.response.items[0].copy_history[0].text, optsAfisha);
+          console.warn(_o);
+          // logging("logs/ResponsePhotoVkLog.log", _o.response.items);
+          // bot.sendMessage(messageChatId, _o.response.items[0].copy_history[0].text, optsAfisha);
       }
-    } else {
-      console.warn(_o);
     }
   );
 }
