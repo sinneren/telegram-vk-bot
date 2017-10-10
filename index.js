@@ -6,6 +6,9 @@ var fs = require('fs');
 var TOKEN = process.env.TOKEN;
 var PORT = process.env.PORT || 3000;
 var MODE = process.env.MODE || 'dev';
+var APP_SECRET = process.env.APP_SECRET;
+var APP_TOKEN = process.env.APP_TOKEN;
+
 if (MODE === 'prod') {
   var url = process.env.APP_URL || 'https://telegram-bot-vk-api.herokuapp.com:443';
 }
@@ -30,9 +33,14 @@ if (MODE === 'prod') {
 }
 var vk = new VK({
     'appId': 6214737,
-    'appSecret': 'eZi3alltJ8I1NiJG3bGw',
-    'language' : 'ru'
+    'appSecret': APP_SECRET,
+    'language' : 'ru',
+    'secure ': true
 });
+
+vk.requestServerToken();
+vk.setSecureRequests(true);
+vk.setToken(APP_TOKEN);
 
 bot.on('text', function(msg) {
   var messageChatId = msg.chat.id;
@@ -45,8 +53,8 @@ bot.on('text', function(msg) {
     //reply_to_message_id: msg.message_id,
     reply_markup: JSON.stringify({
       keyboard: [
-//        ['🏦 Прислать фото Питера', '📅 Афиша'],
         ['🏦 Прислать открытку из Питера'],
+        ['📅 Афиша'],
         ['🆕 Новости бота','❓ Помощь'],
         ['♥ Понравился бот?']
       ],
@@ -246,7 +254,6 @@ function getVKPublicNews (messageChatId, optsAfisha, messageDate, pubId) {
           bot.sendMessage(messageChatId, _o.response.items[0].text, optsAfisha);
         }
       } else {
-          console.warn(_o);
           if (MODE === 'prod') {
             logging("logs/ResponsePhotoVkLog.log", _o.response.items);
           }
