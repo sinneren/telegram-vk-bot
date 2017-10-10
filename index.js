@@ -9,10 +9,10 @@ var MODE = process.env.MODE || 'dev';
 var APP_SECRET = process.env.APP_SECRET;
 var APP_TOKEN = process.env.APP_TOKEN;
 
+var excludeArr = /работа|cm|tfp|лет|см|полумарафон|модель|медаль|марафон|диплом|конкурс|мужское|жеснкое|обмен|меняю|обменяю|заказы|рост|цена|пересыл|ремонт|личку|куплю|макияж|рублей|руб|размер|услуги|тонировка|туфли|джинсы|бронирование|штаны|футболка|продаю|продам|покупка|звоните|сдам|сниму/gi;
+
 if (MODE === 'prod') {
   var url = process.env.APP_URL || 'https://telegram-bot-vk-api.herokuapp.com:443';
-}
-if (MODE === 'prod') {
   var botOptions = {
       webHook: {
         port: PORT
@@ -27,6 +27,7 @@ if (MODE === 'prod') {
     port: PORT
   };
 }
+
 var bot = new TelegramBot(TOKEN, botOptions);
 if (MODE === 'prod') {
   bot.setWebHook(`${url}/bot${TOKEN}`);
@@ -37,7 +38,6 @@ var vk = new VK({
     'language' : 'ru',
     'secure ': true
 });
-
 vk.requestServerToken();
 vk.setSecureRequests(true);
 vk.setToken(APP_TOKEN);
@@ -47,16 +47,30 @@ bot.on('text', function(msg) {
   var messageText = msg.text;
   var messageUsr = msg.from.username;
   var messageDate = new Date(msg.date);
-
+  var messages = {
+    getPhoto: '🏦 Прислать открытку из Питера',
+    getEvents: '📅 Афиша',
+    getNews: '🆕 Новости бота',
+    getHelp: '❓ Помощь',
+    setRate: '♥ Понравился бот?',
+    alreadyRate: '⭐ Я уже оценил',
+    lateRate: '⌛ Я оценю позже',
+    sorryMsgSize: 'Упс, не найдено подходящего размера',
+    successPhoto: 'Отлично! Давай еще загрузим!\r\n/live',
+    afishaConcert: '🎭 Концерты, выставки и театры',
+    afishaEvents: '💬 Интересные события в городе',
+    afishaPaper: '⚡ Происходящее в городе',
+    getBack: '⬅ Назад'
+  }
   var opts = {
     //http://yraaa.ru/graphics/vse-smajliki-vkontakte-emoji-vk emojii
     //reply_to_message_id: msg.message_id,
     reply_markup: JSON.stringify({
       keyboard: [
-        ['🏦 Прислать открытку из Питера'],
-        ['📅 Афиша'],
-        ['🆕 Новости бота','❓ Помощь'],
-        ['♥ Понравился бот?']
+        [messages.getPhoto],
+        [messages.getEvents],
+        [messages.getNews, messages.getHelp],
+        [messages.setRate]
       ],
       resize_keyboard: true
     })
@@ -64,8 +78,8 @@ bot.on('text', function(msg) {
   var optsLike = {
     reply_markup: JSON.stringify({
       keyboard: [
-        ['⭐ Я уже оценил'],
-        ['⌛ Я оценю позже']
+        [messages.alreadyRate],
+        [messages.lateRate]
       ],
       resize_keyboard: true
     })
@@ -73,38 +87,38 @@ bot.on('text', function(msg) {
   var optsAfisha = {
     reply_markup: JSON.stringify({
       keyboard: [
-        ['🎭 Концерты, выставки и театры'],
-        ['💬 Интересные события в городе'],
-        ['⚡ Происходящее в городе'],
-        ['⬅ Назад']
+        [messages.afishaConcert],
+        [messages.afishaEvents],
+        [messages.afishaPaper],
+        [messages.getBack]
       ],
       resize_keyboard: true
     })
   };
 
   //Main messages
-  if ((messageText === '/live') || (messageText === '🏦 Прислать фото Питера')) {
+  if ( (messageText === '/live') || (messageText === messages.getPhoto) ) {
     getVKGeoPhotos(messageChatId, opts, messageDate, function(vkResponse) {
       var items_count = vkResponse.length;
       var responseArr = randd(items_count, vkResponse);
       var img;
-      if("photo_604" in vkResponse[responseArr[1]]) {
+      if ("photo_604" in vkResponse[responseArr[1]]) {
         img = request(vkResponse[responseArr[1]].photo_604);
       } else if ("photo_807" in vkResponse[responseArr[1]]) {
         img = request(vkResponse[responseArr[1]].photo_807);
       } else if ("photo_130" in vkResponse[responseArr[1]]){
         img = request(vkResponse[responseArr[1]].photo_130);
       } else {
-        bot.sendMessage(messageChatId, "Упс, не найдено подходящего размера", opts);
+        bot.sendMessage(messageChatId, messages.sorryMsgSize, opts);
         if (MODE !== 'prod') {
           logging("logs/ResponsePhotoVkLog.log", vkResponse);
         }
       }
 
-      if(vkResponse[responseArr[1]].text.length < 190) {
+      if (vkResponse[responseArr[1]].text.length < 190) {
         opts.caption = vkResponse[responseArr[1]].text + '\r\n/live';
-      }else{
-        opts.caption = 'Отлично! Давай еще загрузим!\r\n/live';
+      } else {
+        opts.caption = messages.successPhoto;
       }
 
       bot.sendPhoto(messageChatId, img, opts);
@@ -116,48 +130,46 @@ bot.on('text', function(msg) {
 			'Чтобы просмотреть афишу наберите команду:\r\n/afisha\r\n\r\n' +
 			'Следите за обновлениями по тегу:\r\n/news', opts);
   }
-  if ((messageText === '/news') || messageText === ('🆕 Новости бота')) {
-		  bot.sendMessage(messageChatId, 'Версия бота 0.5.1\r\n' +
+  if ( (messageText === '/news') || messageText === ('🆕 Новости бота') ) {
+		  bot.sendMessage(messageChatId, 'Версия бота 0.5.2\r\n' +
         '>бот запущен на heroku и доступен постоянно, исправлена загрузка афиш\r\n' +
         '>добавлена фильтрация по стоп-словам, теперь исключаются многие фотографии\r\n' +
         '>улучшена стабильность\r\n' +
         '>прочие мелкие правки',
         opts);
   }
-  if ((messageText === '/help') || messageText === ('❓ Помощь')) {
+  if ( (messageText === '/help') || (messageText ===messages.getHelp) ) {
   	bot.sendMessage(messageChatId, 'Бот умеет загружать фотографии Санкт-Петербурга из ВКонтакте. \r\n' +
   		'Внимание: бот и его разработчики не отвечают за содержание фотографий. \r\n' +
   		'Фотографии берутся из открытых альбомов по гео-меткам. Вполне возможно, что там будет не город, а чей-то портрет, вещь и т.д. ' +
   		'Для поиска подходящей фотографии наберите команду еще раз. Фотографии берутся случайные из самых последний сделанных пользователями.\r\n\r\n' +
       '\r\nТак же бот загружает последнее сообщение со стены новостных пабликов, чтобы предоставить вам список культурных мероприятий и происшествий города.\r\n' +
-  		'\r\n\r\nСписок команд:\r\n/news\r\n/help\r\n/live\r\n/afisha\r\n/like\r\n\r\nЕсли вам понравилось, то можете пожертвовать на развитие:\r\nR390746431168\r\nZ204528440705\r\n' +
+  		'\r\n\r\nСписок команд:\r\n/news\r\n/help\r\n/live\r\n/afisha\r\n/like\r\n\r\nЕсли вам понравилось, то можете пожертвовать на развитие:\r\nR390746431168\r\nZ204528440705\r\n\r\nBTC: 1bSHtYiyiEmq4qXszNYMbo3fHihXvxc5N' +
       'Или оценить бот на ⭐⭐⭐⭐⭐ в https://telegram.me/storebot?start=spblive_bot', opts);
   }
-  if ((messageText === '/like') || messageText === ('♥ Понравился бот?')) {
+  if ( (messageText === '/like') || (messageText === messages.setRate) ) {
     bot.sendMessage(messageChatId, 'Привет, ' + messageUsr + ' ✌. Если тебе понравился этот бот, то поставь ему 5 звёзд ⭐⭐⭐⭐⭐ тут: https://telegram.me/storebot?start=spblive_bot ' +
       '\r\n' + 'Так же, ты можешь пожертвовать на развитие в разделе помощи:\r\n/help', optsLike);
   }
-  //Main messages--->like
-  if ((messageText === '/likeyet') || messageText === ('⭐ Я уже оценил')) {
+  if ( (messageText === '/likeyet') || (messageText === messages.alreadyRate) ) {
     bot.sendMessage(messageChatId, 'Ого! Спасибо, ' + messageUsr + '!😗 Что смотрим дальше?', opts);
   }
-  if ((messageText === '/liketomorrow') || messageText === ('⌛ Я оценю позже')) {
+  if ((messageText === '/liketomorrow') || (messageText === messages.lateRate) ) {
     bot.sendMessage(messageChatId, 'Ну, ладно, ' + messageUsr + '! Это быстро и просто, но я подожду... 🌚', opts);
   }
-  if ((messageText === '/afisha') || messageText === ('📅 Афиша')) {
+  if ( (messageText === '/afisha') || (messageText === messages.getEvents) ) {
     bot.sendMessage(messageChatId, 'Давай выберем, что нас интересует, ' + messageUsr + '. 📰', optsAfisha);
   }
-  //Main messages--->Afisha
-  if ((messageText === '/afishaCulture') || messageText === ('🎭 Концерты, выставки и театры')) {
+  if ( (messageText === '/afishaCulture') || (messageText === messages.afishaConcert) ) {
     getVKPublicNews (messageChatId, optsAfisha, messageDate, "-59599229");
   }
-  if ((messageText === '/afishaEvents') || messageText === ('💬 Интересные события в городе')) {
+  if ( (messageText === '/afishaEvents') || (messageText === messages.afishaEvents) ) {
     getVKPublicNews (messageChatId, optsAfisha, messageDate, "-26270763");
   }
-  if ((messageText === '/afishaNews') || messageText === ('⚡ Происходящее в городе')) {
+  if ( (messageText === '/afishaNews') || (messageText === messages.afishaPaper) ) {
     getVKPublicNews (messageChatId, optsAfisha, messageDate, "-23303030");
   }
-  if ((messageText === '/back') || messageText === ('⬅ Назад')) {
+  if ((messageText === '/back') || (messageText === messages.getBack) ) {
     bot.sendMessage(messageChatId, 'Чего, ' + messageUsr + ', изволишь❓', opts);
   }
 });
@@ -198,9 +210,9 @@ function getVKGeoPhotos(messageChatId, opts, messageDate, callback) {
       'version':'5.50'
     },
     function (_o) {
-      if(_o.response.items.length > 1) {
+      if (_o.response.items.length > 1) {
         callback(_o.response.items);
-      }else{
+      } else {
         bot.sendMessage(messageChatId, "Упс, ничего не найдено", opts);
         if (MODE !== 'prod') {
           logging("logs/ResponsePhotoVkLog.log", _o);
@@ -216,7 +228,7 @@ function randd(items_count, vkResponse){
   var photoCaption = vkResponse[randomId].text;
 
   if (photoCaption !== ''){
-    if (photoCaption.match(/работа|cm|tfp|лет|см|полумарафон|модель|медаль|марафон|диплом|конкурс|мужское|жеснкое|обмен|меняю|обменяю|заказы|рост|цена|пересыл|ремонт|личку|куплю|макияж|рублей|руб|размер|услуги|тонировка|туфли|джинсы|бронирование|штаны|футболка|продаю|продам|покупка|звоните|сдам|сниму/gi) ) {
+    if (photoCaption.match(excludeArr) ) {
       return randd(items_count, vkResponse);
     } else {
       return [photoCaption, randomId];
