@@ -4,7 +4,7 @@
     "description": "Telegram VK Api bot",
     "main": "index.js",
     "dependencies": {
-        "node-telegram-bot-api": "^0.20.1",
+        "node-telegram-bot-api": "^0.28.0",
         "request": "^2.69.0",
         "require": "^2.4.20",
         "vksdk": "^5.3.1"
