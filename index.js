@@ -12,7 +12,7 @@ var botOptions = {
     }
 };
 
-var bot = new TelegramBot(token, botOptions);
+var bot = new TelegramBot(TOKEN, botOptions);
 bot.setWebHook(`${url}/bot${TOKEN}`);
 var vk = new VK({
     'appId': 6214737,
