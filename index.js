@@ -96,7 +96,7 @@ bot.on('text', function(msg) {
         img = request(vkResponse[responseArr[1]].photo_130);
       } else {
         bot.sendMessage(messageChatId, "Упс, не найдено подходящего размера", opts);
-        if (MODE === 'prod') {
+        if (MODE !== 'prod') {
           logging("logs/ResponsePhotoVkLog.log", vkResponse);
         }
       }
@@ -117,7 +117,8 @@ bot.on('text', function(msg) {
 			'Следите за обновлениями по тегу:\r\n/news', opts);
   }
   if ((messageText === '/news') || messageText === ('🆕 Новости бота')) {
-		  bot.sendMessage(messageChatId, 'Версия бота 0.4.3\r\n' +
+		  bot.sendMessage(messageChatId, 'Версия бота 0.5.1\r\n' +
+        '>бот запущен на heroku и доступен постоянно, исправлена загрузка афиш\r\n' +
         '>добавлена фильтрация по стоп-словам, теперь исключаются многие фотографии\r\n' +
         '>улучшена стабильность\r\n' +
         '>прочие мелкие правки',
@@ -201,7 +202,7 @@ function getVKGeoPhotos(messageChatId, opts, messageDate, callback) {
         callback(_o.response.items);
       }else{
         bot.sendMessage(messageChatId, "Упс, ничего не найдено", opts);
-        if (MODE === 'prod') {
+        if (MODE !== 'prod') {
           logging("logs/ResponsePhotoVkLog.log", _o);
         }
       }
@@ -244,17 +245,17 @@ function getVKPublicNews (messageChatId, optsAfisha, messageDate, pubId) {
             bot.sendPhoto(messageChatId, request(_o.response.items[0].attachments[0].photo.photo_604), optsAfisha);
             bot.sendMessage(messageChatId, _o.response.items[0].text, optsAfisha);
           }
-          if (MODE === 'prod') {
+          if (MODE !== 'prod') {
             logging("logs/ResponsePhotoVkLog.log", _o.response.items);
           }
         } else {
-          if (MODE === 'prod') {
+          if (MODE !== 'prod') {
             logging("logs/ResponsePhotoVkLog.log", _o.response.items);
           }
           bot.sendMessage(messageChatId, _o.response.items[0].text, optsAfisha);
         }
       } else {
-          if (MODE === 'prod') {
+          if (MODE !== 'prod') {
             logging("logs/ResponsePhotoVkLog.log", _o.response.items);
           }
           bot.sendMessage(messageChatId, _o.response.items[0].copy_history[0].text, optsAfisha);
