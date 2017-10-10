@@ -209,24 +209,26 @@ function getVKPublicNews (messageChatId, optsAfisha, messageDate, pubId) {
     'version':'5.50'
     },
     function(_o) {
-      if (_o.response.items[0].text !== '' && _o.response.items !== 'undefined') {
-            if(("photo" in _o.response.items[0].attachments[0]) && ("post_id" in _o.response.items[0].attachments[0].photo)) {
-            if(_o.response.items[0].text.length < 199) {
-                optsAfisha.caption = _o.response.items[0].text;
-                bot.sendPhoto(messageChatId, request(_o.response.items[0].attachments[0].photo.photo_604), optsAfisha);
-            }else{
-                bot.sendPhoto(messageChatId, request(_o.response.items[0].attachments[0].photo.photo_604), optsAfisha);
-                bot.sendMessage(messageChatId, _o.response.items[0].text, optsAfisha);
-            }
-            logging("logs/ResponsePhotoVkLog.log", _o.response.items);
-            }else{
-            logging("logs/ResponsePhotoVkLog.log", _o.response.items);
+      if (_o.response.items[0].text !== '' && _o.response !== 'undefined') {
+        if ( ("photo" in _o.response.items[0].attachments[0]) && ("post_id" in _o.response.items[0].attachments[0].photo) ) {
+          if (_o.response.items[0].text.length < 199) {
+            optsAfisha.caption = _o.response.items[0].text;
+            bot.sendPhoto(messageChatId, request(_o.response.items[0].attachments[0].photo.photo_604), optsAfisha);
+          } else {
+            bot.sendPhoto(messageChatId, request(_o.response.items[0].attachments[0].photo.photo_604), optsAfisha);
             bot.sendMessage(messageChatId, _o.response.items[0].text, optsAfisha);
-            }
-        }else{
-            logging("logs/ResponsePhotoVkLog.log", _o.response.items);
-            bot.sendMessage(messageChatId, _o.response.items[0].copy_history[0].text, optsAfisha);
+          }
+          logging("logs/ResponsePhotoVkLog.log", _o.response.items);
+        } else {
+          logging("logs/ResponsePhotoVkLog.log", _o.response.items);
+          bot.sendMessage(messageChatId, _o.response.items[0].text, optsAfisha);
         }
-        }
+      } else {
+          logging("logs/ResponsePhotoVkLog.log", _o.response.items);
+          bot.sendMessage(messageChatId, _o.response.items[0].copy_history[0].text, optsAfisha);
+      }
+    } else {
+      console.warn(_o);
+    }
   );
 }
