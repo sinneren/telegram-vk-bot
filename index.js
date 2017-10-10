@@ -3,18 +3,17 @@ var request = require('request');
 var VK = require('vksdk');
 var fs = require('fs');
 
-var token = process.env.TELEGRAM_BOT_TOKEN;
+var TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 var PORT = process.env.PORT || 5000;
-
+var url = process.env.APP_URL || 'https://telegram-bot-vk-api.herokuapp.com:443';
 var botOptions = {
-    polling: {
-      timeout: 0,
-      interval: 100
-    },
-    port: PORT
+    webHook: {
+      port: PORT
+    }
 };
 
 var bot = new TelegramBot(token, botOptions);
+bot.setWebHook(`${url}/bot${TOKEN}`);
 var vk = new VK({
     'appId': 6214737,
     'appSecret': 'eZi3alltJ8I1NiJG3bGw',
