@@ -209,7 +209,7 @@ function getVKPublicNews (messageChatId, optsAfisha, messageDate, pubId) {
     'version':'5.50'
     },
     function(_o) {
-        if(_o.response.items[0].text !== '') {
+      if (_o.response.items[0].text !== '' && _o.response.items !== 'undefined') {
             if(("photo" in _o.response.items[0].attachments[0]) && ("post_id" in _o.response.items[0].attachments[0].photo)) {
             if(_o.response.items[0].text.length < 199) {
                 optsAfisha.caption = _o.response.items[0].text;
