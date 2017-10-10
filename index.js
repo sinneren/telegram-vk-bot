@@ -4,19 +4,21 @@ var VK = require('vksdk');
 var fs = require('fs');
 
 var token = process.env.TELEGRAM_BOT_TOKEN;
+var PORT = process.env.PORT || 5000;
+
 var botOptions = {
     polling: {
       timeout: 0,
       interval: 100
     },
-    port: 8000
+    port: PORT
 };
 
 var bot = new TelegramBot(token, botOptions);
 var vk = new VK({
     'appId': 6214737,
     'appSecret': 'eZi3alltJ8I1NiJG3bGw',
-	'language' : 'ru'
+    'language' : 'ru'
 });
 
 bot.on('text', function(msg) {
@@ -187,7 +189,7 @@ function randd(items_count, vkResponse){
   var photoCaption = vkResponse[randomId].text;
 
   if(photoCaption !== ''){
-    if(photoCaption.match(/работа|cm|tfp|лет|см|полумарафон|модель|медаль|марафон|диплом|конкурс|мужское|жеснкое|обмен|меняю|обменяю|заказы|рост|цена|пересыл|ремонт|личку|куплю|макияж|рублей|руб|размер|услуги|тонировка|туфли|джинсы|штаны|футболка|продаю|продам|покупка|звоните|сдам|сниму/gi)) {
+    if(photoCaption.match(/работа|cm|tfp|лет|см|полумарафон|модель|медаль|марафон|диплом|конкурс|мужское|жеснкое|обмен|меняю|обменяю|заказы|рост|цена|пересыл|ремонт|личку|куплю|макияж|рублей|руб|размер|услуги|тонировка|туфли|джинсы|бронирование|штаны|футболка|продаю|продам|покупка|звоните|сдам|сниму/gi)) {
       return randd(items_count, vkResponse);
     }else{
       return [photoCaption, randomId];
