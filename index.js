@@ -45,7 +45,12 @@ vk.setToken(APP_TOKEN);
 bot.on('text', function(msg) {
   var messageChatId = msg.chat.id;
   var messageText = msg.text;
-  var messageUsr = msg.from.username;
+  var messageUsr = '_%username%_';
+  if (msg.from.username !== 'undefined') {
+      messageUsr = '*' + msg.from.username + '*';
+  } else {
+      messageUsr = '_' + msg.from.first_name + '_';
+  }
   var messageDate = new Date(msg.date);
   var messages = {
     getPhoto: '🏦 Прислать открытку из Питера',
